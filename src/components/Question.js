@@ -1,11 +1,35 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 function Question({ question, onAnswered }) {
   const [timeRemaining, setTimeRemaining] = useState(10);
+  const timeoutRef = useRef(null);
 
-  // add useEffect code
+  useEffect(() => {
+    setTimeRemaining(10);
+
+    function tick() {
+      timeoutRef.current = setTimeout(() => {
+        setTimeRemaining((prevTime) => {
+          if (prevTime === 1) {
+            onAnswered(false);
+            return 10;
+          } else {
+            tick(); // schedule the next tick only if not done
+            return prevTime - 1;
+          }
+        });
+      }, 1000);
+    }
+
+    tick(); // start the first countdown
+
+    return () => {
+      clearTimeout(timeoutRef.current); // cleanup!
+    };
+  }, [question, onAnswered]);
 
   function handleAnswer(isCorrect) {
+    clearTimeout(timeoutRef.current); // stop the countdown
     setTimeRemaining(10);
     onAnswered(isCorrect);
   }
